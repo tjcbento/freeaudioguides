@@ -11,13 +11,19 @@ const defaultIcon = new L.Icon({
   popupAnchor: [0, -41],
 });
 
-export const MapComponent = ({ guides, center, userCoords }) => {
+export const MapComponent = ({
+  guides,
+  center,
+  userCoords,
+  setSelectedGuide,
+  setCurrentImageIndex,
+}) => {
   return (
     <MapContainer
       center={center}
       zoom={12}
       scrollWheelZoom={true}
-      style={{ height: "100%", width: "100%" }}
+      style={{ height: "100%", width: "100%", zIndex: 0 }}
     >
       <TileLayer
         url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
@@ -29,7 +35,7 @@ export const MapComponent = ({ guides, center, userCoords }) => {
           position={[userCoords.latitude, userCoords.longitude]}
           icon={
             new L.Icon({
-              iconUrl: "https://cdn-icons-png.flaticon.com/512/684/684908.png", // optional: different icon
+              iconUrl: "https://cdn-icons-png.flaticon.com/512/684/684908.png",
               iconSize: [30, 30],
               iconAnchor: [15, 30],
               popupAnchor: [0, -30],
@@ -47,20 +53,42 @@ export const MapComponent = ({ guides, center, userCoords }) => {
           icon={defaultIcon}
         >
           <Popup>
-            <strong>{guide.title}</strong>
-            <p>{guide.original_title}</p>
+            {/* Clickable title */}
+            <div>
+              <h2
+                onClick={() => {
+                  setSelectedGuide(guide);
+                  setCurrentImageIndex(0);
+                }}
+                className="text-lg font-semibold text-purple-700 cursor-pointer hover:underline"
+              >
+                {guide.title}
+              </h2>
+            </div>
+            {/* Tags below title */}
+            <div style={{ marginTop: "8px" }}>
+              {guide.tags?.map((tag, idx) => (
+                <span
+                  key={idx}
+                  className="px-2 py-0.5 bg-purple-200 text-purple-800 rounded-full text-xs font-semibold select-none shrink-0"
+                >
+                  {tag}
+                </span>
+              ))}
+              <p style={{ marginTop: "8px" }}>
+                {(() => {
+                  const words = guide.guide.split(" ");
+                  if (words.length <= 30) return guide.guide;
+                  return words.slice(0, 30).join(" ") + "...";
+                })()}
+              </p>
+            </div>
           </Popup>
         </Marker>
       ))}
     </MapContainer>
   );
 };
-
-const LANGUAGES = [
-  { code: "EN", label: "English", flag: "https://flagcdn.com/gb.svg" },
-  { code: "FR", label: "Français", flag: "https://flagcdn.com/fr.svg" },
-  { code: "PT", label: "Português", flag: "https://flagcdn.com/pt.svg" },
-];
 
 function debounce(func, delay) {
   let timeout;
@@ -76,8 +104,9 @@ const GuidesPage = () => {
   const [guides, setGuides] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const language = localStorage.getItem("selectedLanguage") || "en";
-  const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false);
+  const [language, _] = useState(() => {
+    return localStorage.getItem("language") || "en";
+  });
   const [tagsList, setTagsList] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState({
     label: "📍 Near me",
@@ -96,18 +125,6 @@ const GuidesPage = () => {
   // Audio play state and ref
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef(null);
-
-  function handleLanguageChange(newLang) {
-    if (newLang === language) {
-      setLanguageDropdownOpen(false);
-      return; // no change
-    }
-    localStorage.setItem("selectedLanguage", newLang);
-    setLanguageDropdownOpen(false);
-
-    // Reload page so backend and frontend use new language
-    window.location.reload();
-  }
 
   // Fetch locations from backend
   const userCoordsRef = useRef(userCoords);
@@ -388,51 +405,6 @@ const GuidesPage = () => {
 
   return (
     <div className="flex flex-col h-screen w-screen bg-white text-gray-900 font-sans">
-      <header className="fixed top-0 left-0 right-0 h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 z-50">
-        <div style={{ width: 40 }}></div>
-        <div className="flex justify-center flex-1">
-          <img
-            src="https://via.placeholder.com/120x40?text=Logo"
-            alt="Logo"
-            className="h-8 object-contain"
-          />
-        </div>
-        <div className="relative">
-          <button
-            onClick={() => setLanguageDropdownOpen(!languageDropdownOpen)}
-            className="flex items-center border border-gray-300 rounded-full p-1 bg-white shadow hover:shadow-md transition"
-            aria-label="Select language"
-          >
-            <img
-              src={
-                LANGUAGES.find((lang) => lang.code === language)?.flag ||
-                "https://flagcdn.com/gb.svg"
-              }
-              alt={language}
-              className="h-5 w-auto"
-            />
-          </button>
-          {languageDropdownOpen && (
-            <div className="absolute right-0 mt-2 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-              {LANGUAGES.map((lang) => (
-                <button
-                  key={lang.code}
-                  onClick={() => handleLanguageChange(lang.code)}
-                  className="flex items-center p-1 hover:bg-gray-100 w-full"
-                >
-                  <img
-                    src={lang.flag}
-                    alt={lang.code}
-                    className="h-5 w-auto mx-auto"
-                  />
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      </header>
-
-      {/* Add padding top so content isn't hidden behind fixed header */}
       <main className="flex-1 pt-14 overflow-y-auto">
         <div className="flex justify-around items-end h-26 pt-6 pb-2 border-b border-gray-200 bg-white">
           <button
@@ -461,7 +433,7 @@ const GuidesPage = () => {
         <div className="px-4 pt-6 mb-4 space-y-2">
           <div className="flex flex-col sm:flex-row gap-4">
             {/* Location Selector */}
-            <div className="flex items-center flex-1">
+            <div className="flex items-center flex-1 z-10">
               <label
                 htmlFor="location-select"
                 className="w-24 text-sm font-medium text-gray-700"
@@ -503,36 +475,6 @@ const GuidesPage = () => {
                 className="flex-grow text-sm"
               />
             </div>
-            <div className="flex justify-end px-4 py-2 border-b border-gray-200">
-              <div
-                className="inline-flex rounded-md shadow-sm"
-                role="group"
-                aria-label="Sort by options"
-              >
-                <button
-                  type="button"
-                  onClick={() => setSortBy("closest")}
-                  className={`px-4 py-2 text-sm font-medium border border-gray-300 rounded-l-md focus:z-10 focus:outline-none ${
-                    sortBy === "closest"
-                      ? "bg-purple-600 text-white border-purple-600"
-                      : "bg-white text-gray-700 hover:bg-gray-100"
-                  }`}
-                >
-                  Closest
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSortBy("popularity")}
-                  className={`px-4 py-2 text-sm font-medium border border-gray-300 rounded-r-md focus:z-10 focus:outline-none ${
-                    sortBy === "popularity"
-                      ? "bg-purple-600 text-white border-purple-600"
-                      : "bg-white text-gray-700 hover:bg-gray-100"
-                  }`}
-                >
-                  Popularity
-                </button>
-              </div>
-            </div>
           </div>
         </div>
         {/* Content */}
@@ -548,6 +490,37 @@ const GuidesPage = () => {
                 <div>No guides found near you.</div>
               ) : (
                 <div className="space-y-4">
+                  <div className="flex justify-end px-4 py-2 border-b border-gray-200">
+                    <div
+                      className="inline-flex rounded-md shadow-sm"
+                      role="group"
+                      aria-label="Sort by options"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => setSortBy("closest")}
+                        className={`px-4 py-2 text-sm font-medium border border-gray-300 rounded-l-md focus:z-10 focus:outline-none ${
+                          sortBy === "closest"
+                            ? "bg-purple-600 text-white border-purple-600"
+                            : "bg-white text-gray-700 hover:bg-gray-100"
+                        }`}
+                      >
+                        Closest
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSortBy("popularity")}
+                        className={`px-4 py-2 text-sm font-medium border border-gray-300 rounded-r-md focus:z-10 focus:outline-none ${
+                          sortBy === "popularity"
+                            ? "bg-purple-600 text-white border-purple-600"
+                            : "bg-white text-gray-700 hover:bg-gray-100"
+                        }`}
+                      >
+                        Popularity
+                      </button>
+                    </div>
+                  </div>
+
                   {sortedGuides.map((guide) => (
                     <div
                       key={guide.id}
@@ -619,6 +592,7 @@ const GuidesPage = () => {
                     ]
                   : [38.7122, -9.134] // fallback center (e.g., Lisbon)
               }
+              setSelectedGuide={setSelectedGuide}
               userCoords={
                 selectedLocation?.label === "📍 Near me" && userCoords?.value
                   ? userCoords.value
@@ -631,7 +605,7 @@ const GuidesPage = () => {
 
       {/* Modal Overlay for full guide */}
       {selectedGuide && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-80 flex flex-col">
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-80 flex flex-col z-10">
           {/* Image carousel container with relative position */}
           <div className="relative flex-1 flex items-center justify-center bg-black rounded-b-none">
             {/* Close button */}
