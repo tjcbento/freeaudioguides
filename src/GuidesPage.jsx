@@ -605,7 +605,7 @@ const GuidesPage = () => {
 
       {/* Modal Overlay for full guide */}
       {selectedGuide && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-80 flex flex-col z-10">
+        <div className="fixed inset-0 z-10 bg-black bg-opacity-80 flex flex-col">
           {/* Image carousel container with relative position */}
           <div className="relative flex-1 flex items-center justify-center bg-black rounded-b-none">
             {/* Close button */}
