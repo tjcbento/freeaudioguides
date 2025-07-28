@@ -371,6 +371,21 @@ const GuidesPage = () => {
       )
     : guides;
 
+  const [sortBy, setSortBy] = useState("closest");
+
+  // Sort guides by selected criteria
+  const sortedGuides = [...filteredGuides].sort((a, b) => {
+    if (sortBy === "closest") {
+      // Sort ascending by distance (handle missing distance)
+      return (a.distance ?? Infinity) - (b.distance ?? Infinity);
+    }
+    if (sortBy === "popularity") {
+      // Sort descending by nrplays
+      return (b.nrplays ?? 0) - (a.nrplays ?? 0);
+    }
+    return 0;
+  });
+
   return (
     <div className="flex flex-col h-screen w-screen bg-white text-gray-900 font-sans">
       <header className="fixed top-0 left-0 right-0 h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 z-50">
@@ -488,6 +503,36 @@ const GuidesPage = () => {
                 className="flex-grow text-sm"
               />
             </div>
+            <div className="flex justify-end px-4 py-2 border-b border-gray-200">
+              <div
+                className="inline-flex rounded-md shadow-sm"
+                role="group"
+                aria-label="Sort by options"
+              >
+                <button
+                  type="button"
+                  onClick={() => setSortBy("closest")}
+                  className={`px-4 py-2 text-sm font-medium border border-gray-300 rounded-l-md focus:z-10 focus:outline-none ${
+                    sortBy === "closest"
+                      ? "bg-purple-600 text-white border-purple-600"
+                      : "bg-white text-gray-700 hover:bg-gray-100"
+                  }`}
+                >
+                  Closest
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSortBy("popularity")}
+                  className={`px-4 py-2 text-sm font-medium border border-gray-300 rounded-r-md focus:z-10 focus:outline-none ${
+                    sortBy === "popularity"
+                      ? "bg-purple-600 text-white border-purple-600"
+                      : "bg-white text-gray-700 hover:bg-gray-100"
+                  }`}
+                >
+                  Popularity
+                </button>
+              </div>
+            </div>
           </div>
         </div>
         {/* Content */}
@@ -503,7 +548,7 @@ const GuidesPage = () => {
                 <div>No guides found near you.</div>
               ) : (
                 <div className="space-y-4">
-                  {filteredGuides.map((guide) => (
+                  {sortedGuides.map((guide) => (
                     <div
                       key={guide.id}
                       className="p-4 bg-white rounded-2xl shadow-md border border-gray-100 transition hover:shadow-lg"
@@ -523,9 +568,21 @@ const GuidesPage = () => {
                             {guide.original_title}
                           </p>
                         </div>
-                        <span className="text-xs text-gray-400 whitespace-nowrap">
-                          {guide.nrplays} plays
-                        </span>
+                        <div className="flex flex-col text-xs text-gray-400 space-y-0.5">
+                          <span className="whitespace-nowrap">
+                            {guide.nrplays >= 1000
+                              ? `${(guide.nrplays / 1000).toFixed(1)}K plays`
+                              : `${guide.nrplays} plays`}
+                          </span>
+                          {guide.distance && (
+                            <span className="whitespace-nowrap">
+                              {" "}
+                              {guide.distance < 1000
+                                ? `${guide.distance} m`
+                                : `${(guide.distance / 1000).toFixed(1)} km`}
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <div className="flex mt-2 space-x-2 overflow-hidden whitespace-nowrap">
                         {(guide.tags || []).map((tag, idx) => (
@@ -696,9 +753,22 @@ const GuidesPage = () => {
                   {selectedGuide.original_title}
                 </p>
               </div>
-              <span className="text-sm text-gray-500 whitespace-nowrap">
-                {selectedGuide.nrplays} plays
-              </span>
+              <div className="flex flex-col text-sm text-gray-500 items-end whitespace-nowrap">
+                <span>
+                  {" "}
+                  {selectedGuide.nrplays >= 1000
+                    ? `${(selectedGuide.nrplays / 1000).toFixed(1)}K plays`
+                    : `${selectedGuide.nrplays} plays`}
+                </span>
+                {selectedGuide.distance && (
+                  <span>
+                    {" "}
+                    {selectedGuide.distance < 1000
+                      ? `${selectedGuide.distance} m`
+                      : `${(selectedGuide.distance / 1000).toFixed(1)} km`}
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* Tags inside modal */}

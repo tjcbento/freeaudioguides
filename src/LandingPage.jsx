@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { FaMapMarkedAlt, FaHeadphones } from "react-icons/fa";
-import { useNavigate } from "react-router-dom"; // 🚀 Add this
+import { useNavigate } from "react-router-dom";
 
 export default function LandingPage() {
   const [showModal, setShowModal] = useState(false);
   const [searchMode, setSearchMode] = useState("smart");
 
-  const navigate = useNavigate(); // 🚀 Initialize
+  const navigate = useNavigate();
 
   const handleStartClick = () => {
     setShowModal(true);
@@ -15,21 +15,6 @@ export default function LandingPage() {
   const closeModal = () => {
     setShowModal(false);
   };
-
-  const getToggleButtonStyle = (mode) => ({
-    minWidth: "120px",
-    padding: "0.75rem 1.5rem",
-    fontWeight: "700",
-    fontSize: "0.875rem",
-    lineHeight: "1.25rem",
-    userSelect: "none",
-    cursor: "pointer",
-    borderRadius: "9999px",
-    transition: "background-color 0.2s ease",
-    color: searchMode === mode ? "white" : "#2563EB",
-    backgroundColor: searchMode === mode ? "#6B21A8" : "transparent",
-    border: "none",
-  });
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
@@ -45,9 +30,7 @@ export default function LandingPage() {
         }}
       >
         <div className="relative z-10 text-center max-w-2xl">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">
-            freeaudio.guide
-          </h1>
+          <h1 className="text-4xl md:text-6xl font-bold mb-6">freeaudio.guide</h1>
           <p className="text-lg md:text-xl mb-8">Listen Learn Live</p>
           <button
             onClick={handleStartClick}
@@ -97,18 +80,18 @@ export default function LandingPage() {
             </div>
 
             {/* Toggle Selector */}
-            <div className="flex justify-center mb-6 space-x-2">
+            <div className="flex justify-end mb-6 space-x-2">
               <button
                 onClick={() => setSearchMode("smart")}
-                style={getToggleButtonStyle("smart")}
-                onMouseEnter={(e) => {
-                  if (searchMode !== "smart")
-                    e.currentTarget.style.backgroundColor = "#EDE9FE";
-                }}
-                onMouseLeave={(e) => {
-                  if (searchMode !== "smart")
-                    e.currentTarget.style.backgroundColor = "transparent";
-                }}
+                aria-pressed={searchMode === "smart"}
+                className={`
+                  min-w-[120px] py-3 px-6 font-bold text-sm rounded-full transition
+                  ${
+                    searchMode === "smart"
+                      ? "bg-purple-700 text-white"
+                      : "text-purple-600 hover:bg-purple-100 hover:text-purple-800"
+                  }
+                `}
               >
                 <span>Smart</span>
                 <br />
@@ -116,15 +99,15 @@ export default function LandingPage() {
               </button>
               <button
                 onClick={() => setSearchMode("advanced")}
-                style={getToggleButtonStyle("advanced")}
-                onMouseEnter={(e) => {
-                  if (searchMode !== "advanced")
-                    e.currentTarget.style.backgroundColor = "#EDE9FE";
-                }}
-                onMouseLeave={(e) => {
-                  if (searchMode !== "advanced")
-                    e.currentTarget.style.backgroundColor = "transparent";
-                }}
+                aria-pressed={searchMode === "advanced"}
+                className={`
+                  min-w-[120px] py-3 px-6 font-bold text-sm rounded-full transition
+                  ${
+                    searchMode === "advanced"
+                      ? "bg-purple-700 text-white"
+                      : "text-purple-600 hover:bg-purple-100 hover:text-purple-800"
+                  }
+                `}
               >
                 <span>Advanced</span>
                 <br />
