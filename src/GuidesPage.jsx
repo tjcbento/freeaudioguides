@@ -53,35 +53,54 @@ export const MapComponent = ({
           icon={defaultIcon}
         >
           <Popup>
-            {/* Clickable title */}
-            <div>
+            <div className="relative">
+              {/* Top-right corner info */}
+              <div className="absolute top-0 right-0 text-right">
+                <div className="flex flex-col text-xs text-gray-400 space-y-0.5">
+                  <span className="whitespace-nowrap">
+                    {guide.nrplays >= 1000
+                      ? `${(guide.nrplays / 1000).toFixed(1)}K plays`
+                      : `${guide.nrplays} plays`}
+                  </span>
+                  {guide.distance != null && (
+                    <span className="whitespace-nowrap">
+                      {guide.distance < 1000
+                        ? `${guide.distance} m`
+                        : `${(guide.distance / 1000).toFixed(1)} km`}
+                    </span>
+                  )}
+                </div>
+              </div>
+
               <h2
                 onClick={() => {
                   setSelectedGuide(guide);
                   setCurrentImageIndex(0);
                 }}
-                className="text-lg font-semibold text-purple-700 cursor-pointer hover:underline"
+                className="text-lg font-semibold text-purple-700 cursor-pointer hover:underline pr-20"
               >
                 {guide.title}
               </h2>
-            </div>
-            {/* Tags below title */}
-            <div style={{ marginTop: "8px" }}>
-              {guide.tags?.map((tag, idx) => (
-                <span
-                  key={idx}
-                  className="px-2 py-0.5 bg-purple-200 text-purple-800 rounded-full text-xs font-semibold select-none shrink-0"
-                >
-                  {tag}
-                </span>
-              ))}
-              <p style={{ marginTop: "8px" }}>
-                {(() => {
-                  const words = guide.guide.split(" ");
-                  if (words.length <= 30) return guide.guide;
-                  return words.slice(0, 30).join(" ") + "...";
-                })()}
+
+              <p className="text-xs text-gray-400">
+                {guide.original_title}
               </p>
+              <div className="mt-2 flex flex-wrap gap-1">
+                {guide.tags?.map((tag, index) => (
+                  <span
+                    key={index}
+                    className="bg-purple-200 text-purple-800 text-xs px-2 py-1 rounded-full"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+
+              {guide.guide && (
+                <p className="mt-2 text-sm text-gray-700">
+                  {guide.guide.split(" ").slice(0, 30).join(" ")}...
+                </p>
+              )}
             </div>
           </Popup>
         </Marker>
@@ -405,7 +424,7 @@ const GuidesPage = () => {
 
   return (
     <div className="flex flex-col h-screen w-screen bg-white text-gray-900 font-sans">
-      <main className="flex-1 pt-14 overflow-y-auto">
+      <main className="flex-1 pt-8 overflow-y-auto">
         <div className="flex justify-around items-end h-26 pt-6 pb-2 border-b border-gray-200 bg-white">
           <button
             className={`flex flex-col items-center px-4 py-1 text-sm font-medium transition-colors duration-200 ${
@@ -605,7 +624,7 @@ const GuidesPage = () => {
 
       {/* Modal Overlay for full guide */}
       {selectedGuide && (
-        <div className="fixed inset-0 z-10 bg-black bg-opacity-80 flex flex-col">
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-80 flex flex-col">
           {/* Image carousel container with relative position */}
           <div className="relative flex-1 flex items-center justify-center bg-black rounded-b-none">
             {/* Close button */}
